@@ -19,6 +19,10 @@ pub struct Game {
     lines_cleared: u32,
     level: u32,
     base_drop_speed: f32,
+    left_move_timer: f32,
+    right_move_timer: f32,
+    move_repeat_delay: f32,
+    move_repeat_rate: f32,
 }
 
 impl Game {
@@ -34,6 +38,10 @@ impl Game {
             lines_cleared: 0,
             level: 1,
             base_drop_speed: base_speed,
+            left_move_timer: 0.0,
+            right_move_timer: 0.0,
+            move_repeat_delay: 0.15, // Initial delay before repeating (150ms)
+            move_repeat_rate: 0.05,  // Time between repeats (50ms)
         }
     }
 
@@ -66,8 +74,13 @@ impl Game {
                 draw_text(&format!("Lines Cleared: {}", self.lines_cleared), 100.0, 280.0, 30.0, WHITE);
                 draw_text(&format!("Level Reached: {}", self.level), 100.0, 310.0, 30.0, WHITE);
                 draw_text("Press R to restart", 100.0, 360.0, 30.0, YELLOW);
+                draw_text("Press Q to quit", 100.0, 390.0, 30.0, YELLOW);
+                
                 if is_key_pressed(KeyCode::R) {
                     *self = Game::new();
+                }
+                if is_key_pressed(KeyCode::Q) {
+                    std::process::exit(0);
                 }
                 next_frame().await;
                 continue;
@@ -82,15 +95,60 @@ impl Game {
     }
 
     fn handle_input(&mut self) {
-        if is_key_pressed(KeyCode::Left) {
-            self.current_piece.move_left(&self.board);
+        let frame_time = get_frame_time();
+
+        // Handle left movement
+        if is_key_down(KeyCode::Left) {
+            if is_key_pressed(KeyCode::Left) {
+                // First press - immediate movement
+                self.current_piece.move_left(&self.board);
+                self.left_move_timer = 0.0;
+            } else {
+                // Key is held down - check for repeat
+                self.left_move_timer += frame_time;
+                if self.left_move_timer >= self.move_repeat_delay {
+                    // Calculate how many moves should have happened
+                    let time_since_delay = self.left_move_timer - self.move_repeat_delay;
+                    let moves_count = (time_since_delay / self.move_repeat_rate) as i32 + 1;
+                    
+                    // Move and reset timer appropriately
+                    self.current_piece.move_left(&self.board);
+                    self.left_move_timer = self.move_repeat_delay + ((moves_count as f32) * self.move_repeat_rate);
+                }
+            }
+        } else {
+            self.left_move_timer = 0.0;
         }
-        if is_key_pressed(KeyCode::Right) {
-            self.current_piece.move_right(&self.board);
+
+        // Handle right movement
+        if is_key_down(KeyCode::Right) {
+            if is_key_pressed(KeyCode::Right) {
+                // First press - immediate movement
+                self.current_piece.move_right(&self.board);
+                self.right_move_timer = 0.0;
+            } else {
+                // Key is held down - check for repeat
+                self.right_move_timer += frame_time;
+                if self.right_move_timer >= self.move_repeat_delay {
+                    // Calculate how many moves should have happened
+                    let time_since_delay = self.right_move_timer - self.move_repeat_delay;
+                    let moves_count = (time_since_delay / self.move_repeat_rate) as i32 + 1;
+                    
+                    // Move and reset timer appropriately
+                    self.current_piece.move_right(&self.board);
+                    self.right_move_timer = self.move_repeat_delay + ((moves_count as f32) * self.move_repeat_rate);
+                }
+            }
+        } else {
+            self.right_move_timer = 0.0;
         }
+
+        // Handle rotation (single press only)
         if is_key_pressed(KeyCode::Up) {
             self.current_piece.rotate(&self.board);
         }
+
+        // Handle fast drop
         if is_key_down(KeyCode::Down) {
             self.drop_speed = 0.05; // faster fall when holding down
         } else {
