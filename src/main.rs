@@ -3,7 +3,6 @@ mod tetramino;
 mod board;
 
 use game::Game;
-use macroquad::prelude::*;
 
 #[macroquad::main("Tetris Clone")]
 async fn main() {

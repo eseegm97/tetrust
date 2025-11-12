@@ -8,7 +8,6 @@ pub enum TetrominoType {
 
 #[derive(Clone)]
 pub struct Tetramino {
-    pub kind: TetrominoType,
     pub x: i32,
     pub y: i32,
     pub rotation: u8,
@@ -97,7 +96,6 @@ impl Tetramino {
         };
 
         Tetramino {
-            kind,
             x: 3,
             y: 0,
             rotation: 0,
