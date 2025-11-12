@@ -127,9 +127,17 @@ impl Tetramino {
         true
     }
 
-    pub fn rotate(&mut self, board: &Board) {
+    pub fn rotate_clockwise(&mut self, board: &Board) {
         let old_rotation = self.rotation;
         self.rotation = (self.rotation + 1) % 4;
+        if board.check_collision(self) {
+            self.rotation = old_rotation; // revert if collides
+        }
+    }
+
+    pub fn rotate_counter_clockwise(&mut self, board: &Board) {
+        let old_rotation = self.rotation;
+        self.rotation = (self.rotation + 3) % 4; // equivalent to subtracting 1 with wrap-around
         if board.check_collision(self) {
             self.rotation = old_rotation; // revert if collides
         }

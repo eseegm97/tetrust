@@ -144,8 +144,11 @@ impl Game {
         }
 
         // Handle rotation (single press only)
-        if is_key_pressed(KeyCode::Up) {
-            self.current_piece.rotate(&self.board);
+        if is_key_pressed(KeyCode::Z) {
+            self.current_piece.rotate_counter_clockwise(&self.board);
+        }
+        if is_key_pressed(KeyCode::X) {
+            self.current_piece.rotate_clockwise(&self.board);
         }
 
         // Handle fast drop
@@ -222,7 +225,8 @@ impl Game {
         // Controls
         draw_text("Controls:", info_x, 280.0, font_size, YELLOW);
         draw_text("Left/Right Arrows: Move Left or Right", info_x, 310.0, 16.0, LIGHTGRAY);
-        draw_text("Up Arrow: Rotate (Clockwise)", info_x, 330.0, 16.0, LIGHTGRAY);
-        draw_text("Down Arrow: Fast Drop", info_x, 350.0, 16.0, LIGHTGRAY);
+        draw_text("Z: Rotate Left", info_x, 330.0, 16.0, LIGHTGRAY);
+        draw_text("X: Rotate Right", info_x, 350.0, 16.0, LIGHTGRAY);
+        draw_text("Down Arrow: Fast Drop", info_x, 370.0, 16.0, LIGHTGRAY);
     }
 }
