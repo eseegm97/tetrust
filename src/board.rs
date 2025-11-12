@@ -51,12 +51,14 @@ impl Board {
         }
     }
 
-    pub fn clear_full_lines(&mut self) {
+    pub fn clear_full_lines(&mut self) -> u32 {
         let mut new_grid = [[Cell { filled: false, color: DARKGRAY }; BOARD_WIDTH]; BOARD_HEIGHT];
         let mut new_row = BOARD_HEIGHT as i32 - 1;
+        let mut lines_cleared = 0u32;
 
         for y in (0..BOARD_HEIGHT).rev() {
             if self.grid[y].iter().all(|cell| cell.filled) {
+                lines_cleared += 1;
                 continue; // skip full rows (cleared)
             }
 
@@ -65,6 +67,7 @@ impl Board {
         }
 
         self.grid = new_grid;
+        lines_cleared
     }
 
     pub fn draw(&self) {
