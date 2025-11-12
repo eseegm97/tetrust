@@ -3,8 +3,10 @@ mod tetramino;
 mod board;
 
 use game::Game;
+use macroquad::prelude::*;
 
-fn main() {
+#[macroquad::main("Tetris Clone")]
+async fn main() {
     let mut game = Game::new();
-    game.run();
+    game.run().await;
 }
