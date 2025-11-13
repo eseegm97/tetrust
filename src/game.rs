@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use crate::board::Board;
-use crate::tetramino::Tetramino;
+use crate::tetramino::{Tetramino, TetrominoType};
 
 // Scoring constants
 const SCORE_SINGLE: u32 = 100;
@@ -15,6 +15,7 @@ pub struct Game {
     drop_timer: f32,
     drop_speed: f32,
     game_over: bool,
+    paused: bool,
     score: u32,
     lines_cleared: u32,
     level: u32,
@@ -23,17 +24,22 @@ pub struct Game {
     right_move_timer: f32,
     move_repeat_delay: f32,
     move_repeat_rate: f32,
+    last_tetramino_type: Option<TetrominoType>,
 }
 
 impl Game {
     pub fn new() -> Self {
         let base_speed = 0.8;
+        let first_piece = Tetramino::random();
+        let first_type = first_piece.get_type();
+        
         Self {
             board: Board::new(),
-            current_piece: Tetramino::random(),
+            current_piece: first_piece,
             drop_timer: 0.0,
             drop_speed: base_speed,
             game_over: false,
+            paused: false,
             score: 0,
             lines_cleared: 0,
             level: 1,
@@ -42,6 +48,7 @@ impl Game {
             right_move_timer: 0.0,
             move_repeat_delay: 0.15, // Initial delay before repeating (150ms)
             move_repeat_rate: 0.05,  // Time between repeats (50ms)
+            last_tetramino_type: Some(first_type),
         }
     }
 
@@ -86,8 +93,16 @@ impl Game {
                 continue;
             }
 
-            self.handle_input();
-            self.update();
+            // Always handle pause input, even when paused
+            if is_key_pressed(KeyCode::Space) {
+                self.paused = !self.paused;
+            }
+
+            if !self.paused {
+                self.handle_input();
+                self.update();
+            }
+            
             self.render();
 
             next_frame().await;
@@ -179,8 +194,13 @@ impl Game {
                     self.update_level();
                 }
 
-                // spawn new piece
-                self.current_piece = Tetramino::random();
+                // spawn new piece (avoiding same type as previous)
+                if let Some(last_type) = self.last_tetramino_type {
+                    self.current_piece = Tetramino::random_excluding(last_type);
+                } else {
+                    self.current_piece = Tetramino::random();
+                }
+                self.last_tetramino_type = Some(self.current_piece.get_type());
 
                 // check for game over
                 if self.board.check_collision(&self.current_piece) {
@@ -224,9 +244,26 @@ impl Game {
 
         // Controls
         draw_text("Controls:", info_x, 280.0, font_size, YELLOW);
-        draw_text("Left/Right Arrows: Move Left or Right", info_x, 310.0, 16.0, LIGHTGRAY);
+        draw_text("Left/Right: Move Left/Right", info_x, 310.0, 16.0, LIGHTGRAY);
         draw_text("Z: Rotate Left", info_x, 330.0, 16.0, LIGHTGRAY);
         draw_text("X: Rotate Right", info_x, 350.0, 16.0, LIGHTGRAY);
         draw_text("Down Arrow: Fast Drop", info_x, 370.0, 16.0, LIGHTGRAY);
+        draw_text("Space: Pause/Unpause", info_x, 390.0, 16.0, LIGHTGRAY);
+
+        // Pause indicator
+        if self.paused {
+            // Draw semi-transparent overlay
+            draw_rectangle(0.0, 0.0, screen_width(), screen_height(), Color::new(0.0, 0.0, 0.0, 0.5));
+            
+            // Draw pause text in center of screen
+            let pause_text = "PAUSED";
+            let pause_font_size = 48.0;
+            let text_width = measure_text(pause_text, None, pause_font_size as u16, 1.0).width;
+            let center_x = (screen_width() - text_width) / 2.0;
+            let center_y = screen_height() / 2.0;
+            
+            draw_text(pause_text, center_x, center_y, pause_font_size, WHITE);
+            draw_text("Press SPACE to continue", center_x - 50.0, center_y + 50.0, 20.0, YELLOW);
+        }
     }
 }

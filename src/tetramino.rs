@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use crate::board::Board;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum TetrominoType {
     I, O, T, S, Z, J, L,
 }
@@ -13,6 +13,7 @@ pub struct Tetramino {
     pub rotation: u8,
     pub blocks: [[(i32, i32); 4]; 4], // 4 rotation states of 4 blocks each
     pub color: Color,
+    pub tetramino_type: TetrominoType,
 }
 
 impl Tetramino {
@@ -26,6 +27,33 @@ impl Tetramino {
             5 => Self::new(TetrominoType::J),
             _ => Self::new(TetrominoType::L),
         }
+    }
+
+    pub fn random_excluding(exclude_type: TetrominoType) -> Self {
+        let all_types = [
+            TetrominoType::I,
+            TetrominoType::O,
+            TetrominoType::T,
+            TetrominoType::S,
+            TetrominoType::Z,
+            TetrominoType::J,
+            TetrominoType::L,
+        ];
+        
+        // Filter out the excluded type
+        let available_types: Vec<TetrominoType> = all_types
+            .iter()
+            .filter(|&&t| t != exclude_type)
+            .copied()
+            .collect();
+        
+        // Choose a random type from the remaining options
+        let index = rand::gen_range(0, available_types.len());
+        Self::new(available_types[index])
+    }
+
+    pub fn get_type(&self) -> TetrominoType {
+        self.tetramino_type
     }
 
     pub fn new(kind: TetrominoType) -> Self {
@@ -101,6 +129,7 @@ impl Tetramino {
             rotation: 0,
             blocks,
             color,
+            tetramino_type: kind,
         }
     }
 

@@ -3,6 +3,8 @@
 {Important! Do not say in this section that this is college assignment. Talk about what you are trying to accomplish as a software engineer to further your learning.}
 RUST (\|) ._. (|/)
 
+In this program, I wanted to try and replicate one of my favorite video games, Tetris. I ahve always loved Tetris for its simplicity and ease of play, yet it is also very addicting and challenging, despite its simple design and gameplay.
+
 {Provide a description of the software that you wrote to demonstrate the Rust language.}
 
 {Describe your purpose for writing this software.}
